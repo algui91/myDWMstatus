@@ -208,6 +208,8 @@ void getcore(char cores[2][5]) {
       total[2];
 
   char ln[100];
+  int freq;
+  char *color;
 
   file = fopen("/proc/stat", "r");
   for (int i = 0; i < 3; i++) {
@@ -233,7 +235,20 @@ void getcore(char cores[2][5]) {
       percent /= total[i];
       percent *= 100;
     }
-    strcpy(cores[i], smprintf("%d%%", (int) percent));
+
+    // ---- FREQ
+    file = fopen("/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq", "r");
+    fscanf(file, "%d", &freq);
+    fclose(file);
+    if (freq <= 800000) {
+      color = "\x05";
+    } else if (freq >= 2000000) {
+      color = "\x06";
+    } else {
+      color = "\x07";
+    }
+
+    strcpy(cores[i], smprintf("%d%%%s", (int) percent, color));
   }
 
   for (int i = 0; i < 4; i++) {
@@ -327,10 +342,9 @@ int main(void) {
     temp = gettemp();
     status =
         smprintf(
-            "[\x01 %dK / %dK \x02]\x01[\x01 VOL: %s\x04 ]\x01[\x01 %s / %s\x03 ]\x01[\x01 %s\x02 ]\x01[\x01 %s\x03 ]\x01[\x01 %s | %s ]\x01",
-            //"[\x01  %dK / %dK \x02]\x01[\x01 VOL: %s\x04 ]\x01[\x01  %s / %s\x03 ]\x01[\x01  %s\x02 ]\x01[\x01  %s\x03 ]\x01[\x01 %s | %s ]\x01",
+            //"[\x01 %dK / %dK \x02]\x01[\x01 VOL: %s\x04 ]\x01[\x01 %s / %s\x03 ]\x01[\x01 %s\x02 ]\x01[\x01 %s\x03 ]\x01[\x01 %s | %s ]\x01",
+            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s / %s ][\x01  %s\x02 ][\x01  %s\x03 ][\x01 %s | %s ]\x01",
             rx_rate, tx_rate, vol, cores[0], cores[1], temp, mem, date, tme);
-
     strcpy(rx_old, rx_now);
     strcpy(tx_old, tx_now);
     //printf("%s\n", status);
