@@ -193,7 +193,7 @@ void initcore() {
     fgets(ln, 99, file);
     if (i < 1)
       continue;
-    sscanf(ln, "%s %Ld %Ld %Ld %Ld", trash, &lastTotalUser[i - 1],
+    sscanf(ln, "%s %llu %llu %llu %llu", trash, &lastTotalUser[i - 1],
            &lastTotalUserLow[i - 1], &lastTotalSys[i - 1],
            &lastTotalIdle[i - 1]);
   }
@@ -208,15 +208,13 @@ void getcore(char cores[2][5]) {
       total[2];
 
   char ln[100];
-  int freq;
-  char *color;
 
   file = fopen("/proc/stat", "r");
   for (int i = 0; i < 3; i++) {
     fgets(ln, 99, file);
     if (i < 1)
       continue;
-    sscanf(ln, "%s %Ld %Ld %Ld %Ld", trash, &totalUser[i - 1],
+    sscanf(ln, "%s %llu %llu %llu %llu", trash, &totalUser[i - 1],
            &totalUserLow[i - 1], &totalSys[i - 1], &totalIdle[i - 1]);
   }
   fclose(file);
@@ -245,7 +243,7 @@ void getcore(char cores[2][5]) {
     }
   }
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 2; i++) {
     lastTotalUser[i] = totalUser[i];
     lastTotalUserLow[i] = totalUserLow[i];
     lastTotalSys[i] = totalSys[i];
@@ -303,10 +301,10 @@ char *getmem() {
 
 int main(void) {
   char *status;
-  char *avgs;
-  char *bat;
+//  char *avgs;
+//  char *bat;
   char *date;
-  char *charge;
+//  char *charge;
   char *tme;
   char* vol;
   char cores[2][5];
@@ -339,7 +337,7 @@ int main(void) {
     status =
         smprintf(
             //"[\x01 %dK / %dK \x02]\x01[\x01 VOL: %s\x04 ]\x01[\x01 %s / %s\x03 ]\x01[\x01 %s\x02 ]\x01[\x01 %s\x03 ]\x01[\x01 %s | %s ]\x01",
-            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s / %s ][\x01  %s ][\x01  %s\x03 ][\x01 %s | %s ]\x01",
+            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01 %s | %s ]\x01",
             rx_rate, tx_rate, vol, cores[0], cores[1], temp, mem, date, tme);
     strcpy(rx_old, rx_now);
     strcpy(tx_old, tx_now);
