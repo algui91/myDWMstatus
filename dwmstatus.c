@@ -236,19 +236,13 @@ void getcore(char cores[2][5]) {
       percent *= 100;
     }
 
-    // ---- FREQ
-    file = fopen("/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq", "r");
-    fscanf(file, "%d", &freq);
-    fclose(file);
-    if (freq <= 800000) {
-      color = "\x05";
-    } else if (freq >= 2000000) {
-      color = "\x06";
+    if (percent > 70) {
+      strcpy(cores[i], smprintf("%d%%\x07", (int) percent));
+    } else if (percent > 50) {
+      strcpy(cores[i], smprintf("%d%%\x06", (int) percent));
     } else {
-      color = "\x07";
+      strcpy(cores[i], smprintf("%d%%\x05", (int) percent));
     }
-
-    strcpy(cores[i], smprintf("%d%%%s", (int) percent, color));
   }
 
   for (int i = 0; i < 4; i++) {
@@ -269,12 +263,12 @@ char *gettemp() {
   fclose(fd);
   temp /= 1000;
 
-  if (temp > 60) {
-    return smprintf("%dc", temp);
+  if (temp > 55) {
+    return smprintf("%dc\x07", temp);
   } else if (temp > 45) {
-    return smprintf("%dc", temp);
+    return smprintf("%dc\x06", temp);
   } else {
-    return smprintf("%dc", temp);
+    return smprintf("%dc\x05", temp);
   }
 }
 
@@ -291,10 +285,12 @@ char *getmem() {
   used = 100 * (total - free - buf - cache) / total;
   use = (total - free) / 2048;
   // TODO Use suffixes as conky
-  if (used > 80) {
-    return smprintf("%d%% (%ldMiB)", used, use);
+  if (used > 70) {
+    return smprintf("%d%% (%ldMiB)\x07", used, use);
+  } else if (used > 50) {
+    return smprintf("%d%% (%ldMiB)\x06", used, use);
   } else {
-    return smprintf("%d%% (%ldMiB)", used, use);
+    return smprintf("%d%% (%ldMiB)\x05", used, use);
   }
 }
 
@@ -343,7 +339,7 @@ int main(void) {
     status =
         smprintf(
             //"[\x01 %dK / %dK \x02]\x01[\x01 VOL: %s\x04 ]\x01[\x01 %s / %s\x03 ]\x01[\x01 %s\x02 ]\x01[\x01 %s\x03 ]\x01[\x01 %s | %s ]\x01",
-            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s / %s ][\x01  %s\x02 ][\x01  %s\x03 ][\x01 %s | %s ]\x01",
+            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s / %s ][\x01  %s ][\x01  %s\x03 ][\x01 %s | %s ]\x01",
             rx_rate, tx_rate, vol, cores[0], cores[1], temp, mem, date, tme);
     strcpy(rx_old, rx_now);
     strcpy(tx_old, tx_now);
