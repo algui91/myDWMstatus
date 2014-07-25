@@ -13,6 +13,7 @@
 #include <X11/Xlib.h>
 
 char *tzpst = "Europe/Madrid";
+static const char *suffixes[] = { "B", "KiB", "MiB", "GiB", "TiB", "PiB", "" };
 
 static Display *dpy;
 
@@ -274,6 +275,7 @@ char *getmem() {
   FILE *fd;
   long total, free, buf, cache, use;
   int used;
+  const char **suffix = suffixes;
 
   fd = fopen("/proc/meminfo", "r");
   fscanf(fd,
@@ -281,14 +283,19 @@ char *getmem() {
          &total, &free, &buf, &cache);
   fclose(fd);
   used = 100 * (total - free - buf - cache) / total;
-  use = (total - free) / 2048;
-  // TODO Use suffixes as conky
+  use = (total - free);
+  // Use suffixes like conky
+  while (llabs(use / 1024) >= 1000LL && **(suffix + 2)) {
+    use /= 1024;
+    suffix++;
+  }
+
   if (used > 70) {
-    return smprintf("%d%% (%ldMiB)\x07", used, use);
+    return smprintf("%d%% (%ld %s)\x07", used, use, *suffix);
   } else if (used > 50) {
-    return smprintf("%d%% (%ldMiB)\x06", used, use);
+    return smprintf("%d%% (%ld %s)\x06", used, use, *suffix);
   } else {
-    return smprintf("%d%% (%ldMiB)\x05", used, use);
+    return smprintf("%d%% (%ld %s)\x05", used, use, *suffix);
   }
 }
 
