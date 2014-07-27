@@ -202,16 +202,16 @@ void initcore() {
 
 }
 
-void getcore(char cores[2][5]) {
+void getcore(char cores[4][5]) {
   double percent;
   FILE* file;
-  unsigned long long totalUser[2], totalUserLow[2], totalSys[2], totalIdle[2],
+  unsigned long long totalUser[4], totalUserLow[4], totalSys[4], totalIdle[4],
       total[2];
 
   char ln[100];
 
   file = fopen("/proc/stat", "r");
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 5; i++) {
     fgets(ln, 99, file);
     if (i < 1)
       continue;
@@ -220,7 +220,7 @@ void getcore(char cores[2][5]) {
   }
   fclose(file);
 
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 4; i++) {
     if (totalUser[i] < lastTotalUser[i] || totalUserLow[i] < lastTotalUserLow[i]
         || totalSys[i] < lastTotalSys[i] || totalIdle[i] < lastTotalIdle[i]) {
       //Overflow detection. Just skip this value.
@@ -244,7 +244,7 @@ void getcore(char cores[2][5]) {
     }
   }
 
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 4; i++) {
     lastTotalUser[i] = totalUser[i];
     lastTotalUserLow[i] = totalUserLow[i];
     lastTotalSys[i] = totalSys[i];
@@ -307,8 +307,8 @@ char *getmem() {
 #define ADAPTER "/proc/acpi/ac_adapter/ADP1/state"
 #define VOLCMD "echo $(amixer get Master | tail -n1 | sed -r 's/.*\\[(.*)%\\].*/\\1/')%"
 #define MEMCMD "echo $(free -m | awk '/buffers\\/cache/ {print $3}')M"
-#define RXCMD "cat /sys/class/net/eth1/statistics/rx_bytes"
-#define TXCMD "cat /sys/class/net/eth1/statistics/tx_bytes"
+#define RXCMD "cat /sys/class/net/wlan0/statistics/rx_bytes"
+#define TXCMD "cat /sys/class/net/wlan0/statistics/tx_bytes"
 
 int main(void) {
   char *status;
@@ -318,7 +318,7 @@ int main(void) {
 //  char *charge;
   char *tme;
   char* vol;
-  char cores[2][5];
+  char cores[4][5];
   char *mem;
   char *rx_old, *rx_now, *tx_old, *tx_now;
   char *temp;
@@ -348,8 +348,8 @@ int main(void) {
     status =
         smprintf(
             //"[\x01 %dK / %dK \x02]\x01[\x01 VOL: %s\x04 ]\x01[\x01 %s / %s\x03 ]\x01[\x01 %s\x02 ]\x01[\x01 %s\x03 ]\x01[\x01 %s | %s ]\x01",
-            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01 %s | %s ]\x01",
-            rx_rate, tx_rate, vol, cores[0], cores[1], temp, mem, date, tme);
+            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01 %s | %s ]\x01",
+            rx_rate, tx_rate, vol, cores[0], cores[1], cores[2], cores[3], temp, mem, date, tme);
     strcpy(rx_old, rx_now);
     strcpy(tx_old, tx_now);
     //printf("%s\n", status);
