@@ -307,8 +307,10 @@ char *getmem() {
 #define ADAPTER "/proc/acpi/ac_adapter/ADP1/state"
 #define VOLCMD "echo $(amixer get Master | tail -n1 | sed -r 's/.*\\[(.*)%\\].*/\\1/')%"
 #define MEMCMD "echo $(free -m | awk '/buffers\\/cache/ {print $3}')M"
-#define RXCMD "cat /sys/class/net/wlan0/statistics/rx_bytes"
-#define TXCMD "cat /sys/class/net/wlan0/statistics/tx_bytes"
+#define RXWCMD "cat /sys/class/net/wlan0/statistics/rx_bytes"
+#define TXWCMD "cat /sys/class/net/wlan0/statistics/tx_bytes"
+#define RXCMD "cat /sys/class/net/eth0/statistics/rx_bytes"
+#define TXCMD "cat /sys/class/net/eth0/statistics/tx_bytes"
 
 int main(void) {
   char *status;
@@ -320,16 +322,18 @@ int main(void) {
   char* vol;
   char cores[4][5];
   char *mem;
-  char *rx_old, *rx_now, *tx_old, *tx_now;
+  char *rx_old, *rx_now, *tx_old, *tx_now, *rxw_old, *rxw_now, *txw_old, *txw_now;
   char *temp;
   initcore();
-  int rx_rate, tx_rate;  //kilo bytes
+  int rx_rate, tx_rate, rxw_rate, txw_rate;  //kilo bytes
   if (!(dpy = XOpenDisplay(NULL))) {
     fprintf(stderr, "dwmstatus: cannot open display.\n");
     return 1;
   }
   rx_old = runcmd(RXCMD);
   tx_old = runcmd(TXCMD);
+  rxw_old = runcmd(RXWCMD);
+  txw_old = runcmd(TXWCMD);
   for (;; sleep(1)) {
     //avgs = loadavg();
     //bat = getbattery(BATTERY);
@@ -341,21 +345,29 @@ int main(void) {
     //get transmitted and recv'd bytes
     rx_now = runcmd(RXCMD);
     tx_now = runcmd(TXCMD);
+    rxw_now = runcmd(RXWCMD);
+    txw_now = runcmd(TXWCMD);
     rx_rate = (atoi(rx_now) - atoi(rx_old)) / 1024;
     tx_rate = (atoi(tx_now) - atoi(tx_old)) / 1024;
+    rxw_rate = (atoi(rxw_now) - atoi(rxw_old)) / 1024;
+    txw_rate = (atoi(txw_now) - atoi(txw_old)) / 1024;
     getcore(cores);
     temp = gettemp();
     status =
         smprintf(
-            "[\x01  %dK / %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
-            rx_rate, tx_rate, vol, cores[0], cores[1], cores[2], cores[3], temp, mem, date, tme);
+            "[\x01  %dK /\x01 %dK |  %dK /\x01 %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
+            rxw_rate, txw_rate, rx_rate, tx_rate, vol, cores[0], cores[1], cores[2], cores[3], temp, mem, date, tme);
     strcpy(rx_old, rx_now);
     strcpy(tx_old, tx_now);
+    strcpy(rxw_old, rxw_now);
+    strcpy(txw_old, txw_now);
     //printf("%s\n", status);
     setstatus(status);
     //free(avgs);
     free(rx_now);
     free(tx_now);
+    free(rxw_now);
+    free(txw_now);
 //		free(bat);
     free(vol);
     free(date);
