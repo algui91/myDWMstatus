@@ -9,7 +9,7 @@ To add colors you need to put the character ```\x0y``` at the end of the text yo
 
 Would color ```Hello World,``` with color 1 and ``` Bye``` with color 2.
 
-for further reading http://elbauldelprogramador.com/statuscolor-dwm-6-1/
+For further reading http://elbauldelprogramador.com/statuscolor-dwm-6-1/
 
 ![](screenshot.png)
 
