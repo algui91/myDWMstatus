@@ -202,7 +202,7 @@ void initcore() {
 
 }
 
-void getcore(char cores[4][5]) {
+void getcore(char cores[4][6]) {
     double percent;
     FILE* file;
     unsigned long long totalUser[4], totalUserLow[4], totalSys[4], totalIdle[4],
@@ -236,11 +236,11 @@ void getcore(char cores[4][5]) {
         }
 
         if (percent > 70) {
-            strcpy(cores[i], smprintf("%d%%\x07", (int) percent));
+            strcpy(cores[i], smprintf("%d%%%c", (int) percent, '\x07'));
         } else if (percent > 50) {
-            strcpy(cores[i], smprintf("%d%%\x06", (int) percent));
+            strcpy(cores[i], smprintf("%d%%%c", (int) percent, '\x06'));
         } else {
-            strcpy(cores[i], smprintf("%d%%\x05", (int) percent));
+            strcpy(cores[i], smprintf("%d%%%c", (int) percent, '\x05'));
         }
     }
 
@@ -320,7 +320,7 @@ int main(void) {
     //  char *charge;
     char *tme;
     char* vol;
-    char cores[4][5];
+    char cores[4][6];
     char *mem;
     char *rx_old, *rx_now, *tx_old, *tx_now, *rxw_old, *rxw_now, *txw_old, *txw_now;
     char *temp;
