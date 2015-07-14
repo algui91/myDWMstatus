@@ -273,16 +273,16 @@ char *gettemp() {
 
 char *getmem() {
   FILE *fd;
-  long total, free, buf, cache, use;
+  long total, free, avail, buf, cache, use;
   int used;
   const char **suffix = suffixes;
 
   fd = fopen("/proc/meminfo", "r");
   fscanf(fd,
-         "MemTotal: %ld kB\nMemFree: %ld kB\nBuffers: %ld kB\nCached: %ld kB\n",
-         &total, &free, &buf, &cache);
+         "MemTotal: %ld kB\nMemFree: %ld kB\nMemAvailable: %ld kB\nBuffers: %ld kB\nCached: %ld kB\n",
+         &total, &free, &avail, &buf, &cache);
   fclose(fd);
-  use = total - free - buf - cache;
+   use = total - avail - buf;
   used = 100 * (use) / total;
 
   // Use suffixes like conky
