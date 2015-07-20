@@ -85,66 +85,32 @@ loadavg(void) {
 }
 
 char *
-getbattery(char *base) {
-    char *path, line[513];
+getbattery(char *path) {
+    char batteryLevel[5];
     FILE *fd;
-    int descap, remcap;
 
-    descap = -1;
-    remcap = -1;
-
-    path = smprintf("%s/info", base);
     fd = fopen(path, "r");
     if (fd == NULL) {
         perror("fopen");
         exit(1);
     }
-    free(path);
-    while (!feof(fd)) {
-        if (fgets(line, sizeof (line) - 1, fd) == NULL)
-            break;
 
-        if (!strncmp(line, "present", 7)) {
-            if (strstr(line, " no")) {
-                descap = 1;
-                break;
-            }
-        }
-        if (!strncmp(line, "design capacity", 15)) {
-            if (sscanf(line + 16, "%*[ ]%d%*[^\n]", &descap))
-                break;
-        }
-    }
+
+    fgets(batteryLevel, 3, fd);
+    int batPercent = atoi(batteryLevel);
     fclose(fd);
-
-    path = smprintf("%s/state", base);
-    fd = fopen(path, "r");
-    if (fd == NULL) {
-        perror("fopen");
-        exit(1);
+    
+    char *batStatus = 0;
+    
+    if (batPercent > 80) {
+        batStatus =  smprintf("%s %s%%%c", "", batteryLevel, '\x05');
+    } else if (batPercent > 50) {
+        batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x06');
+    } else {
+        batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x07');
     }
-    free(path);
-    while (!feof(fd)) {
-        if (fgets(line, sizeof (line) - 1, fd) == NULL)
-            break;
-
-        if (!strncmp(line, "present", 7)) {
-            if (strstr(line, " no")) {
-                remcap = 1;
-                break;
-            }
-        }
-        if (!strncmp(line, "remaining capacity", 18)) {
-            if (sscanf(line + 19, "%*[ ]%d%*[^\n]", &remcap))
-                break;
-        }
-    }
-    fclose(fd);
-
-    if (remcap < 0 || descap < 0)
-        return NULL;
-
-    return smprintf("%.0f", ((float) remcap / (float) descap) * 100);
+    
+    return batStatus;
 }
 
 char *
@@ -303,7 +269,7 @@ char *getmem() {
     }
 }
 
-#define BATTERY "/proc/acpi/battery/BAT1"
+#define BATTERY "/sys/class/power_supply/BAT0/capacity"
 #define ADAPTER "/proc/acpi/ac_adapter/ADP1/state"
 #define VOLCMD "echo $(amixer get Master | tail -n1 | sed -r 's/.*\\[(.*)%\\].*/\\1/')%"
 #define MEMCMD "echo $(free -m | awk '/buffers\\/cache/ {print $3}')M"
@@ -315,7 +281,7 @@ char *getmem() {
 int main(void) {
     char *status;
     //  char *avgs;
-    //  char *bat;
+    char *bat;
     char *date;
     //  char *charge;
     char *tme;
@@ -336,7 +302,7 @@ int main(void) {
     txw_old = runcmd(TXWCMD);
     for (;; sleep(1)) {
         //avgs = loadavg();
-        //bat = getbattery(BATTERY);
+        bat = getbattery(BATTERY);
         date = mktimes("%D", tzpst);
         tme = mktimes("%k.%M", tzpst);
         //charge = chargeStatus(ADAPTER);
@@ -355,8 +321,8 @@ int main(void) {
         temp = gettemp();
         status =
                 smprintf(
-                "[\x01  %dK\x02 /\x01 %dK\x02 |  %dK\x02 /\x01 %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
-                rxw_rate, txw_rate, rx_rate, tx_rate, vol, cores[0], cores[1], cores[2], cores[3], temp, mem, date, tme);
+                "[\x01%s ][ \x01  %dK\x02 /\x01 %dK\x02 |  %dK\x02 /\x01 %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
+                bat, rxw_rate, txw_rate, rx_rate, tx_rate, vol, cores[0], cores[1], cores[2], cores[3], temp, mem, date, tme);
         strcpy(rx_old, rx_now);
         strcpy(tx_old, tx_now);
         strcpy(rxw_old, rxw_now);
@@ -368,7 +334,7 @@ int main(void) {
         free(tx_now);
         free(rxw_now);
         free(txw_now);
-        //		free(bat);
+        free(bat);
         free(vol);
         free(date);
         free(status);
@@ -380,4 +346,3 @@ int main(void) {
 
     return 0;
 }
-
