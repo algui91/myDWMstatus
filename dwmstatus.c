@@ -87,52 +87,30 @@ loadavg(void) {
 char *
 getbattery(char *path) {
     char batteryLevel[5];
+    char *batStatus = 0;
     FILE *fd;
 
     fd = fopen(path, "r");
-    if (fd == NULL) {
-        perror("fopen");
-        exit(1);
-    }
+    if (fd != NULL) {
+
+        fgets(batteryLevel, 3, fd);
+        int batPercent = atoi(batteryLevel);
+        fclose(fd);
 
 
-    fgets(batteryLevel, 3, fd);
-    int batPercent = atoi(batteryLevel);
-    fclose(fd);
-    
-    char *batStatus = 0;
-    
-    if (batPercent > 80) {
-        batStatus =  smprintf("%s %s%%%c", "", batteryLevel, '\x05');
-    } else if (batPercent > 50) {
-        batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x06');
+        if (batPercent > 80) {
+            batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x05');
+        } else if (batPercent > 50) {
+            batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x06');
+        } else {
+            batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x07');
+        }
+
     } else {
-        batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x07');
+        batStatus = smprintf("%s%c", "", '\x05');
     }
-    
+
     return batStatus;
-}
-
-char *
-chargeStatus(char *path) {
-    FILE* fp;
-    char line[40];
-    fp = fopen(path, "r");
-    if (fp == NULL) {
-        exit(1);
-        return NULL;
-    }
-    fgets(line, sizeof (line) - 1, fp);
-    fclose(fp);
-    if (line == NULL) {
-        exit(1);
-        return NULL;
-    }
-    if (strncmp(line + 25, "on-line", 7) == 0) {
-        return "chg";
-    } else {
-        return "dis";
-    }
 }
 
 char*
@@ -270,7 +248,7 @@ char *getmem() {
 }
 
 #define BATTERY "/sys/class/power_supply/BAT0/capacity"
-#define ADAPTER "/proc/acpi/ac_adapter/ADP1/state"
+#define ADAPTER "/sys/class/power_supply/AC0/online"
 #define VOLCMD "echo $(amixer get Master | tail -n1 | sed -r 's/.*\\[(.*)%\\].*/\\1/')%"
 #define MEMCMD "echo $(free -m | awk '/buffers\\/cache/ {print $3}')M"
 #define RXWCMD "cat /sys/class/net/wlan0/statistics/rx_bytes"
@@ -283,7 +261,6 @@ int main(void) {
     //  char *avgs;
     char *bat;
     char *date;
-    //  char *charge;
     char *tme;
     char* vol;
     char cores[4][6];
@@ -305,7 +282,6 @@ int main(void) {
         bat = getbattery(BATTERY);
         date = mktimes("%D", tzpst);
         tme = mktimes("%k.%M", tzpst);
-        //charge = chargeStatus(ADAPTER);
         vol = runcmd(VOLCMD);
         mem = getmem(); //runcmd(MEMCMD);
         //get transmitted and recv'd bytes
@@ -321,7 +297,7 @@ int main(void) {
         temp = gettemp();
         status =
                 smprintf(
-                "[\x01%s ][ \x01  %dK\x02 /\x01 %dK\x02 |  %dK\x02 /\x01 %dK \x02][\x01  %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
+                "[\x01 %s ][ \x01  %dK\x02 /\x01 %dK\x02 |  %dK\x02 /\x01 %dK \x02][\x01  %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
                 bat, rxw_rate, txw_rate, rx_rate, tx_rate, vol, cores[0], cores[1], cores[2], cores[3], temp, mem, date, tme);
         strcpy(rx_old, rx_now);
         strcpy(tx_old, tx_now);
