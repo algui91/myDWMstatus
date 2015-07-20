@@ -321,7 +321,7 @@ int main(void) {
         temp = gettemp();
         status =
                 smprintf(
-                "[\x01%s ][ \x01  %dK\x02 /\x01 %dK\x02 |  %dK\x02 /\x01 %dK \x02][\x01 VOL: %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
+                "[\x01%s ][ \x01  %dK\x02 /\x01 %dK\x02 |  %dK\x02 /\x01 %dK \x02][\x01  %s\x04 ][\x01  %s /\x01 %s /\x01 %s /\x01 %s ][\x01  %s ][\x01  %s\x03 ][\x01  %s | %s ]\x01",
                 bat, rxw_rate, txw_rate, rx_rate, tx_rate, vol, cores[0], cores[1], cores[2], cores[3], temp, mem, date, tme);
         strcpy(rx_old, rx_now);
         strcpy(tx_old, tx_now);
