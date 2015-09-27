@@ -99,11 +99,11 @@ getbattery(char *path) {
 
 
         if (batPercent > 80) {
-            batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x05');
+            batStatus = smprintf("%s %d%%%c", "", batPercent, '\x05');
         } else if (batPercent > 50) {
-            batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x06');
+            batStatus = smprintf("%s %d%%%c", "", batPercent, '\x06');
         } else {
-            batStatus = smprintf("%s %s%%%c", "", batteryLevel, '\x07');
+            batStatus = smprintf("%s %d%%%c", "", batPercent, '\x07');
         }
 
     } else {
